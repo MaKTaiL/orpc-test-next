@@ -1,4 +1,7 @@
-import { protectedProcedure, publicProcedure } from "@/server/orcp/procedures";
+import {
+  protectedProcedure,
+  publicProcedure,
+} from "@/server/orcp/utils/procedures";
 import { z } from "zod";
 
 const hello = publicProcedure

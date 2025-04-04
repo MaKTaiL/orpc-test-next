@@ -16,25 +16,16 @@ const geist = Geist({
   variable: "--font-geist-sans",
 });
 
-function getBaseUrl() {
-  if (typeof window !== "undefined") return window.location.origin;
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return `http://localhost:${process.env.PORT ?? 3000}`;
-}
-
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const heads = await headers();
   const cookie = heads.get("Cookie") ?? undefined;
-  const baseUrl = getBaseUrl();
 
   return (
     <html lang="en" className={`${geist.variable}`}>
       <body>
-        <Providers baseUrl={baseUrl} cookie={cookie}>
-          {children}
-        </Providers>
+        <Providers cookie={cookie}>{children}</Providers>
       </body>
     </html>
   );
