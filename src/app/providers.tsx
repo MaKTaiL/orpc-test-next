@@ -1,44 +1,36 @@
 "use client";
 
-import { orpc } from "@/server/orcp/client";
+import type { router } from "@/server/orcp";
 import { ORPCContext } from "@/server/orcp/context";
-import {
-  isServer,
-  QueryClient,
-  QueryClientProvider,
-} from "@tanstack/react-query";
+import { getQueryClient } from "@/server/orcp/query-client";
+import { createORPCClient } from "@orpc/client";
+import { RPCLink } from "@orpc/client/fetch";
+import { createORPCReactQueryUtils } from "@orpc/react-query";
+import type { RouterClient } from "@orpc/server";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryStreamedHydration } from "@tanstack/react-query-next-experimental";
 
-function makeQueryClient() {
-  return new QueryClient({
-    defaultOptions: {
-      queries: {
-        // With SSR, we usually want to set some default staleTime
-        // above 0 to avoid refetching immediately on the client
-        staleTime: 60 * 1000,
-      },
+export default function Providers({
+  children,
+  baseUrl,
+  cookie,
+}: {
+  children: React.ReactNode;
+  baseUrl: string;
+  cookie?: string;
+}) {
+  const queryClient = getQueryClient();
+
+  const link = new RPCLink({
+    url: baseUrl + "/rpc",
+    headers: {
+      Cookie: cookie,
     },
   });
-}
 
-let browserQueryClient: QueryClient | undefined = undefined;
+  const client: RouterClient<typeof router> = createORPCClient(link);
 
-function getQueryClient() {
-  if (isServer) {
-    // Server: always make a new query client
-    return makeQueryClient();
-  } else {
-    // Browser: make a new query client if we don't already have one
-    // This is very important, so we don't re-make a new client if React
-    // suspends during the initial render. This may not be needed if we
-    // have a suspense boundary BELOW the creation of the query client
-    browserQueryClient ??= makeQueryClient();
-    return browserQueryClient;
-  }
-}
-
-export default function Providers({ children }: { children: React.ReactNode }) {
-  const queryClient = getQueryClient();
+  const orpc = createORPCReactQueryUtils(client);
 
   return (
     <QueryClientProvider client={queryClient}>

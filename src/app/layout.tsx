@@ -3,6 +3,7 @@ import "@/styles/globals.css";
 import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 import Providers from "./providers";
+import { headers } from "next/headers";
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -15,13 +16,25 @@ const geist = Geist({
   variable: "--font-geist-sans",
 });
 
-export default function RootLayout({
+function getBaseUrl() {
+  if (typeof window !== "undefined") return window.location.origin;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return `http://localhost:${process.env.PORT ?? 3000}`;
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const heads = await headers();
+  const cookie = heads.get("Cookie") ?? undefined;
+  const baseUrl = getBaseUrl();
+
   return (
     <html lang="en" className={`${geist.variable}`}>
       <body>
-        <Providers>{children}</Providers>
+        <Providers baseUrl={baseUrl} cookie={cookie}>
+          {children}
+        </Providers>
       </body>
     </html>
   );

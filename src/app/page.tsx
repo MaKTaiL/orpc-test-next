@@ -1,11 +1,11 @@
 import Link from "next/link";
 
 import { auth } from "@/server/auth";
-import { orpc } from "@/server/orcp/client";
 import { LatestPost } from "@/app/_components/post";
+import { router } from "@/server/orcp";
 
 export default async function Home() {
-  const hello = await orpc.post.hello.call({ text: "from ORPC" });
+  const hello = await router.post.hello({ text: "from ORPC" });
   const session = await auth();
 
   return (
